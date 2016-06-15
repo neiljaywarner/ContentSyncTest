@@ -23,6 +23,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.util.Log;
 
 public class WeatherProvider extends ContentProvider {
 
@@ -67,6 +68,7 @@ public class WeatherProvider extends ContentProvider {
         String[] selectionArgs;
         String selection;
 
+        /*
             selection = sLocationSettingSelection;
             selectionArgs = new String[]{locationSetting};
 
@@ -75,6 +77,14 @@ public class WeatherProvider extends ContentProvider {
                 projection,
                 selection,
                 selectionArgs,
+                null,
+                null,
+                sortOrder
+*/
+        return sWeatherByLocationSettingQueryBuilder.query(mOpenHelper.getReadableDatabase(),
+                projection,
+                null,
+                null,
                 null,
                 null,
                 sortOrder
@@ -162,6 +172,9 @@ public class WeatherProvider extends ContentProvider {
                         String sortOrder) {
         // Here's the switch statement that, given a URI, will determine what kind of request it is,
         // and query the database accordingly.
+
+        Log.e("NJW", "query");
+
         Cursor retCursor;
         switch (sUriMatcher.match(uri)) {
             // "weather/*/*"
@@ -297,6 +310,7 @@ public class WeatherProvider extends ContentProvider {
 
     @Override
     public int bulkInsert(Uri uri, ContentValues[] values) {
+        Log.e("NJW", "Bulk insert.");
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
         switch (match) {
@@ -305,8 +319,10 @@ public class WeatherProvider extends ContentProvider {
                 int returnCount = 0;
                 try {
                     for (ContentValues value : values) {
+                        Log.i("NJW", "Trying to insert:" + value.toString());
                         long _id = db.insert(WeatherContract.WeatherEntry.TABLE_NAME, null, value);
                         if (_id != -1) {
+                            Log.e("NJW", "incremetning insertCount");
                             returnCount++;
                         }
                     }

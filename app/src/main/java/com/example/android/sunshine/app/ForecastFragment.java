@@ -285,7 +285,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         // Sort order:  Ascending, by date.
         String sortOrder = null;
 
-        String locationSetting = Utility.getPreferredLocation(getActivity());
+        //String locationSetting = Utility.getPreferredLocation(getActivity());
+        String locationSetting = "1";
         Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
                 locationSetting, System.currentTimeMillis());
 
