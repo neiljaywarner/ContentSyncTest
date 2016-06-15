@@ -23,6 +23,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.IdRes;
 import android.support.annotation.IntDef;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
@@ -36,7 +37,12 @@ import com.example.android.sunshine.app.MainActivity;
 import com.example.android.sunshine.app.R;
 import com.example.android.sunshine.app.Repo;
 import com.example.android.sunshine.app.Utility;
+import com.example.android.sunshine.app.data.Article;
+import com.example.android.sunshine.app.data.Feed;
 import com.example.android.sunshine.app.data.WeatherContract;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -54,6 +60,8 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -104,23 +112,24 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        GitHubService service = retrofit.create(GitHubService.class);
-        Call<List<Repo>> call = service.listRepos("octocat");
+        DTService service = retrofit.create(DTService.class);
+        Call<Feed> call = getCall();
         // Insert the new weather information into the database
         addLocation("1","test",0,0);
         try {
-            Response<List<Repo>> repos = call.execute();
-            Log.i("NJW", "code=" + repos.code());
-            List<Repo> reposList= repos.body();
+            Response<Feed> feedResponse = call.execute();
+            Log.i("NJW", "code=" + feedResponse.code());
+            Feed feed = feedResponse.body();
+            List<Article> reposList= Article.getArticles(feed);
             Vector<ContentValues> cVVector = new Vector<ContentValues>(reposList.size());
 
-            for (Repo repo : reposList) {
-                Log.d(TAG, "tryRetrofitRepoSync:adding contentValue to cvvVector " + repo.getName());
+            for (Article article : reposList) {
+                Log.d(TAG, "tryRetrofitRepoSync:adding contentValue to cvvVector " + article.getTitle());
                 ContentValues weatherValues = new ContentValues();
                 int defaultCategoryId = 1;
                 weatherValues.put(WeatherContract.WeatherEntry.COLUMN_CATEGORY_ID, defaultCategoryId);
-
-                weatherValues.put(WeatherContract.WeatherEntry.COLUMN_SHORT_DESC, repo.getName());
+                weatherValues.put(WeatherContract.WeatherEntry.COLUMN_ARTICLE_ID, article.getId());
+                weatherValues.put(WeatherContract.WeatherEntry.COLUMN_SHORT_DESC, article.getTitle());
 
                 cVVector.add(weatherValues);
 
@@ -583,4 +592,37 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         spe.putInt(c.getString(R.string.pref_location_status_key), locationStatus);
         spe.commit();
     }
+
+    /**
+     * get call based on mItemId
+     * @return
+     */
+    public Call<Feed> getCall() {
+        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
+
+        Gson gson = new GsonBuilder()
+                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                .create();
+
+        GsonConverterFactory gsonConverterFactory = GsonConverterFactory.create(gson);
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(DTService.DISCIPLES_TODAY_BASE_URL)
+                .client(client)
+                .addConverterFactory(gsonConverterFactory)
+                .build();
+
+        DTService service = retrofit.create(DTService.class);
+        String moduleId = "";
+        //TOOD: Later put all in syncadapter, for now it can be just highlighted.
+
+        //TODO: Eventually this can go somewhere better...
+
+        //NOTE: This is actually just highlights of these feeds, we can get a lot more categories if we want to build the UI to support them... tabs?
+        // the simple way to do it is to have a tab taht says subcategories or 'other' searched by subcategories or something.
+        // Start simple,but downloading them is straightforward just by doing all numbers in the background...
+        return service.listFeed("353");
+    }
+
 }

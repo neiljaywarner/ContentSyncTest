@@ -75,7 +75,9 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
             int adapterPosition = getAdapterPosition();
             mCursor.moveToPosition(adapterPosition);
             int dateColumnIndex = mCursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_ARTICLE_ID);
-            mClickHandler.onClick(mCursor.getString(dateColumnIndex), this);
+            String articleId = mCursor.getString(dateColumnIndex);
+            Log.e("NJW", "About to click on articleId:'" + articleId);
+            mClickHandler.onClick(articleId, this);
             mICM.onClick(this);
         }
     }
@@ -125,15 +127,6 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
     @Override
     public void onBindViewHolder(ForecastAdapterViewHolder forecastAdapterViewHolder, int position) {
         mCursor.moveToPosition(position);
-        int defaultImage;
-
-
-
-        // this enables better animations. even if we lose state due to a device rotation,
-        // the animator can use this to re-find the original view
-        ViewCompat.setTransitionName(forecastAdapterViewHolder.mIconView, "iconView" + position);
-
-
 
 
         // Read weather forecast from cursor

@@ -75,14 +75,15 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             // So the convenience is worth it.
             WeatherContract.WeatherEntry.TABLE_NAME + "." + WeatherContract.WeatherEntry._ID,
             WeatherContract.WeatherEntry.COLUMN_SHORT_DESC,
-            WeatherContract.LocationEntry.COLUMN_ID,
-            WeatherContract.LocationEntry.COLUMN_LINK,
-            WeatherContract.LocationEntry.COLUMN_IMAGE
+            WeatherContract.WeatherEntry.COLUMN_ARTICLE_ID
+
     };
 
     // These indices are tied to FORECAST_COLUMNS.  If FORECAST_COLUMNS changes, these
     // must change.
     static final int COL_WEATHER_DESC = 1;
+    static final int COL_ARTICLE_ID = 2;
+
 
 
 
