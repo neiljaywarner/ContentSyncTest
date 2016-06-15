@@ -68,28 +68,12 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     // These indices are tied to DETAIL_COLUMNS.  If DETAIL_COLUMNS changes, these
     // must change.
-    public static final int COL_WEATHER_ID = 0;
-    public static final int COL_WEATHER_DATE = 1;
-    public static final int COL_WEATHER_DESC = 2;
-    public static final int COL_WEATHER_MAX_TEMP = 3;
-    public static final int COL_WEATHER_MIN_TEMP = 4;
-    public static final int COL_WEATHER_HUMIDITY = 5;
-    public static final int COL_WEATHER_PRESSURE = 6;
-    public static final int COL_WEATHER_WIND_SPEED = 7;
-    public static final int COL_WEATHER_DEGREES = 8;
-    public static final int COL_WEATHER_CONDITION_ID = 9;
 
-    private ImageView mIconView;
-    private TextView mDateView;
+    public static final int COL_WEATHER_DESC = 1;
+
+
     private TextView mDescriptionView;
-    private TextView mHighTempView;
-    private TextView mLowTempView;
-    private TextView mHumidityView;
-    private TextView mHumidityLabelView;
-    private TextView mWindView;
-    private TextView mWindLabelView;
-    private TextView mPressureView;
-    private TextView mPressureLabelView;
+
 
     public DetailFragment() {
         setHasOptionsMenu(true);
@@ -106,17 +90,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         }
 
         View rootView = inflater.inflate(R.layout.fragment_detail_start, container, false);
-        mIconView = (ImageView) rootView.findViewById(R.id.detail_icon);
-        mDateView = (TextView) rootView.findViewById(R.id.detail_date_textview);
+
         mDescriptionView = (TextView) rootView.findViewById(R.id.detail_forecast_textview);
-        mHighTempView = (TextView) rootView.findViewById(R.id.detail_high_textview);
-        mLowTempView = (TextView) rootView.findViewById(R.id.detail_low_textview);
-        mHumidityView = (TextView) rootView.findViewById(R.id.detail_humidity_textview);
-        mHumidityLabelView = (TextView) rootView.findViewById(R.id.detail_humidity_label_textview);
-        mWindView = (TextView) rootView.findViewById(R.id.detail_wind_textview);
-        mWindLabelView = (TextView) rootView.findViewById(R.id.detail_wind_label_textview);
-        mPressureView = (TextView) rootView.findViewById(R.id.detail_pressure_textview);
-        mPressureLabelView = (TextView) rootView.findViewById(R.id.detail_pressure_label_textview);
+
         return rootView;
     }
 
@@ -179,71 +155,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                 ((View)vp).setVisibility(View.VISIBLE);
             }
 
-            // Read weather condition ID from cursor
-            int weatherId = data.getInt(COL_WEATHER_CONDITION_ID);
+            mDescriptionView.setText(data.getString(COL_WEATHER_DESC));
 
-            if ( Utility.usingLocalGraphics(getActivity()) ) {
-                mIconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
-            } else {
-                // Use weather art image
-                Glide.with(this)
-                        .load(Utility.getArtUrlForWeatherCondition(getActivity(), weatherId))
-                        .error(Utility.getArtResourceForWeatherCondition(weatherId))
-                        .crossFade()
-                        .into(mIconView);
-            }
-
-            // Read date from cursor and update views for day of week and date
-            long date = data.getLong(COL_WEATHER_DATE);
-            String dateText = Utility.getFullFriendlyDayString(getActivity(),date);
-            mDateView.setText(dateText);
-
-            // Get description from weather condition ID
-            String description = Utility.getStringForWeatherCondition(getActivity(), weatherId);
-            mDescriptionView.setText(description);
-            mDescriptionView.setContentDescription(getString(R.string.a11y_forecast, description));
-
-            // For accessibility, add a content description to the icon field. Because the ImageView
-            // is independently focusable, it's better to have a description of the image. Using
-            // null is appropriate when the image is purely decorative or when the image already
-            // has text describing it in the same UI component.
-            mIconView.setContentDescription(getString(R.string.a11y_forecast_icon, description));
-
-            // Read high temperature from cursor and update view
-            boolean isMetric = Utility.isMetric(getActivity());
-
-            double high = data.getDouble(COL_WEATHER_MAX_TEMP);
-            String highString = Utility.formatTemperature(getActivity(), high);
-            mHighTempView.setText(highString);
-            mHighTempView.setContentDescription(getString(R.string.a11y_high_temp, highString));
-
-            // Read low temperature from cursor and update view
-            double low = data.getDouble(COL_WEATHER_MIN_TEMP);
-            String lowString = Utility.formatTemperature(getActivity(), low);
-            mLowTempView.setText(lowString);
-            mLowTempView.setContentDescription(getString(R.string.a11y_low_temp, lowString));
-
-            // Read humidity from cursor and update view
-            float humidity = data.getFloat(COL_WEATHER_HUMIDITY);
-            mHumidityView.setText(getActivity().getString(R.string.format_humidity, humidity));
-            mHumidityView.setContentDescription(getString(R.string.a11y_humidity, mHumidityView.getText()));
-            mHumidityLabelView.setContentDescription(mHumidityView.getContentDescription());
-
-            // Read wind speed and direction from cursor and update view
-            float windSpeedStr = data.getFloat(COL_WEATHER_WIND_SPEED);
-            float windDirStr = data.getFloat(COL_WEATHER_DEGREES);
-            mWindView.setText(Utility.getFormattedWind(getActivity(), windSpeedStr, windDirStr));
-            mWindView.setContentDescription(getString(R.string.a11y_wind, mWindView.getText()));
-            mWindLabelView.setContentDescription(mWindView.getContentDescription());
-
-            // Read pressure from cursor and update view
-            float pressure = data.getFloat(COL_WEATHER_PRESSURE);
-            mPressureView.setText(getString(R.string.format_pressure, pressure));
-            mPressureView.setContentDescription(getString(R.string.a11y_pressure, mPressureView.getText()));
-            mPressureLabelView.setContentDescription(mPressureView.getContentDescription());
-
-            // We still need this for the share intent
-            mForecast = String.format("%s - %s - %s/%s", dateText, description, high, low);
 
         }
         AppCompatActivity activity = (AppCompatActivity)getActivity();
